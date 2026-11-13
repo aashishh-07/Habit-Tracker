@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0F172A" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="HabitPulse" />
+  <title>HabitPulse — Material You Habit Tracker</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='42' fill='%230F766E'/%3E%3Cpath d='M54 100l28 28 56-60' stroke='%235EEAD4' stroke-width='18' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='42' fill='%230F766E'/%3E%3Cpath d='M54 100l28 28 56-60' stroke='%235EEAD4' stroke-width='18' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <style>
+    :root {
+      --bg: #0B1120;
+      --card: #1E293B;
+      --card-sub: #152033;
+      --border: #334155;
+      --text: #F8FAFC;
+      --muted: #94A3B8;
+      --teal: #14B8A6;
+      --teal-dark: #0F766E;
+      --green-bg: rgba(22, 101, 52, 0.35);
+      --green-txt: #4ADE80;
+      --red-bg: rgba(153, 27, 27, 0.35);
+      --red-txt: #F87171;
+      --amber-bg: rgba(146, 64, 14, 0.35);
+      --amber-txt: #FBBF24;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      padding-bottom: 84px;
+      user-select: none;
+      overflow-x: hidden;
+    }
+    /* Top App Bar */
+    .app-bar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 16px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .app-title { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; display: flex; align-items: center; gap: 8px; }
+    .badge {
+      font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px;
+      background: rgba(20, 184, 166, 0.18); color: #5EEAD4; border: 1px solid rgba(20, 184, 166, 0.35);
+    }
+    .container { max-width: 600px; margin: 0 auto; padding: 14px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .card-title { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; }
+    /* Date Strip */
+    .date-strip {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      scrollbar-width: none;
+    }
+    .date-strip::-webkit-scrollbar { display: none; }
+    .day-pill {
+      min-width: 50px;
+      padding: 8px 6px;
+      border-radius: 14px;
+      background: var(--card-sub);
+      border: 1px solid var(--border);
+      text-align: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: transform 0.12s ease;
+    }
+    .day-pill.active {
+      background: var(--teal-dark);
+      border-color: var(--teal);
+      transform: scale(1.03);
+    }
+    .day-pill .dow { font-size: 10px; color: var(--muted); font-weight: 600; }
+    .day-pill.active .dow { color: #CCFBF1; }
+    .day-pill .dnum { font-size: 15px; font-weight: 800; margin: 2px 0; }
+    .day-pill .dot { width: 6px; height: 6px; border-radius: 50%; margin: 0 auto; }
+    /* Habit Row */
+    .habit-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      border-radius: 14px;
+      background: var(--card-sub);
+      border: 1px solid var(--border);
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+    .habit-item.done { border-color: rgba(74, 222, 128, 0.45); background: rgba(22, 101, 52, 0.16); }
+    .habit-item.miss { border-color: rgba(248, 113, 113, 0.4); background: rgba(153, 27, 27, 0.14); }
+    .habit-info { flex: 1; padding-right: 10px; }
+    .habit-name { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+    .habit-meta { font-size: 11px; color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; }
+    .status-btn {
+      width: 42px; height: 42px; border-radius: 12px; border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 800; flex-shrink: 0;
+      background: #0F172A; color: var(--muted);
+    }
+    .habit-item.done .status-btn { background: var(--green-bg); color: var(--green-txt); border-color: var(--green-txt); }
+    .habit-item.miss .status-btn { background: var(--red-bg); color: var(--red-txt); border-color: var(--red-txt); }
+    /* KPI Grid */
+    .kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 12px; }
+    .kpi-box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 12px; }
+    .kpi-lbl { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
+    .kpi-val { font-size: 22px; font-weight: 800; margin: 4px 0 2px; color: #5EEAD4; }
+    .kpi-sub { font-size: 11px; color: var(--muted); }
+    /* 30-Day Matrix */
+    .matrix-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
+    table.matrix { border-collapse: collapse; width: 100%; font-size: 11px; background: var(--card-sub); }
+    table.matrix th, table.matrix td { border: 1px solid #263349; padding: 6px 5px; text-align: center; }
+    table.matrix th.sticky-col, table.matrix td.sticky-col {
+      position: sticky; left: 0; background: #192438; z-index: 10; text-align: left;
+      min-width: 135px; max-width: 135px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .cell-done { background: var(--green-bg); color: var(--green-txt); font-weight: 800; }
+    .cell-miss { background: var(--red-bg); color: var(--red-txt); font-weight: 800; }
+    .cell-null { color: #475569; }
+    /* Bottom Nav */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 60;
+      background: rgba(15, 23, 42, 0.96); backdrop-filter: blur(14px);
+      border-top: 1px solid var(--border);
+      display: flex; justify-content: space-around; padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
+    }
+    .nav-btn {
+      background: none; border: none; color: var(--muted); font-size: 11px; font-weight: 600;
+      display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer;
+      padding: 4px 12px; border-radius: 12px;
+    }
+    .nav-btn.active { color: #5EEAD4; background: rgba(20, 184, 166, 0.14); }
+    .nav-icon { font-size: 17px; }
+    .btn-action {
+      display: inline-block; width: 100%; padding: 12px; border-radius: 12px; border: none;
+      background: var(--teal-dark); color: #fff; font-weight: 700; font-size: 13px;
+      text-align: center; cursor: pointer; margin-top: 8px;
+    }
+    .rank-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #263349; }
+    .rank-num { width: 26px; height: 26px; border-radius: 8px; background: #0F172A; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #5EEAD4; flex-shrink: 0; }
+    .bar-bg { width: 100%; height: 6px; background: #0F172A; border-radius: 999px; overflow: hidden; margin-top: 4px; }
+    .bar-fill { height: 100%; background: linear-gradient(90deg, #0D9488, #34D399); border-radius: 999px; }
+    textarea.journal {
+      width: 100%; min-height: 64px; background: #0F172A; border: 1px solid var(--border);
+      border-radius: 10px; color: var(--text); padding: 8px; font-size: 12px; margin-top: 6px; font-family: inherit;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="app-bar">
+    <div class="app-title">
+      <span>⚡ HabitPulse</span>
+      <span class="badge">Nov 2026</span>
+    </div>
+    <div id="header-score" class="badge">85.4% True Consistency</div>
+  </header>
+
+  <main class="container" id="app-content"></main>
+
+  <nav class="bottom-nav">
+    <button class="nav-btn active" onclick="switchTab('today')" id="nav-today">
+      <span class="nav-icon">☑️</span><span>Today</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('grid')" id="nav-grid">
+      <span class="nav-icon">📅</span><span>30d Grid</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('graphs')" id="nav-graphs">
+      <span class="nav-icon">📈</span><span>Graphs</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('blueprint')" id="nav-blueprint">
+      <span class="nav-icon">🧭</span><span>Blueprint</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('backup')" id="nav-backup">
+      <span class="nav-icon">💾</span><span>Install/CSV</span>
+    </button>
+  </nav>
+
+<script>
+const HABITS = [
+  { id: 1, name: "Wake Up by 6:30 AM", cat: "Discipline", goal: 28, cue: "6:30 AM alarm across room", min2: "Put feet on floor & drink water", env: "Phone charges outside bedroom", reward: "Morning coffee & quiet 10m" },
+  { id: 2, name: "Drink 2.5L Water", cat: "Health & Fitness", goal: 30, cue: "Right after waking & before meals", min2: "Fill 1L bottle first thing", env: "Insulated bottle on desk", reward: "Fresh lemon/mint infusion" },
+  { id: 3, name: "45-Min Workout / Movement", cat: "Health & Fitness", goal: 24, cue: "5:30 PM after work wrap-up", min2: "Put on workout shoes & walk 5m", env: "Gym clothes laid out night before", reward: "Post-workout smoothie" },
+  { id: 4, name: "Read 20 Pages (Non-Fiction)", cat: "Productivity & Growth", goal: 26, cue: "With morning coffee or pre-bed", min2: "Read just 2 pages to start", env: "Book on pillow / coffee table", reward: "Log key takeaway in notes" },
+  { id: 5, name: "15-Min Mindfulness / Meditation", cat: "Mindfulness & Wellness", goal: 28, cue: "Right after morning coffee", min2: "3 deep conscious breaths", env: "Cushion in quiet corner", reward: "Calm mental clarity" },
+  { id: 6, name: "Deep Work Block (2+ Hours)", cat: "Productivity & Growth", goal: 22, cue: "9:00 AM first work block", min2: "Close Slack & set 25m timer", env: "Noise-canceling headphones", reward: "Guilt-free afternoon break" },
+  { id: 7, name: "Zero Added Sugar / Clean Eating", cat: "Health & Fitness", goal: 26, cue: "Lunch & afternoon snack time", min2: "Swap sweet snack for fruit/nuts", env: "No sugary snacks in kitchen", reward: "Weekend healthy treat meal" },
+  { id: 8, name: "Plan Next Day & Top 3 Priorities", cat: "Productivity & Growth", goal: 28, cue: "6:00 PM shutdown ritual", min2: "Write #1 priority for tomorrow", env: "Planner open on desk", reward: "Complete evening disconnect" },
+  { id: 9, name: "Digital Sunset (No Screens 1h Pre-Bed)", cat: "Mindfulness & Wellness", goal: 25, cue: "9:30 PM bedtime alarm", min2: "Dim lights & plug phone in hall", env: "Book & herbal tea by bed", reward: "Deeper uninterrupted sleep" },
+  { id: 10, name: "Gratitude Journal (3 Things)", cat: "Mindfulness & Wellness", goal: 30, cue: "After brushing teeth at night", min2: "Write 1 sentence of gratitude", env: "Journal & pen on nightstand", reward: "Positive mindset pre-sleep" }
+];
+
+const INITIAL_GRID = [
+  [1,1,1,1,0,1,1, 1,1,1,1,0,1, null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+  [1,1,1,1,1,1,1, 1,0,1,1,1,1, null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+  [1,1,0,1,1,0,1, 1,1,1,1,0,1, null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+  [1,1,1,0,1,1,1, 1,1,0,1,1,1, null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+  [1,1,1,1,1,0,1, 1,1,1,1,1,1, null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+  [0,1,1,1,1,1,0, 1,1,1,0,1,1, null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+  [1,1,1,0,1,1,1, 0,1,1,1,1,1, null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+  [1,1,1,1,1,1,0, 1,1,1,1,1,1, null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+  [1,0,1,1,0,1,1, 1,0,1,1,0,1, null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+  [1,1,1,1,1,1,1, 1,1,1,1,1,1, null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]
+];
+
+const DOW_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const STORAGE_KEY = "habitpulse_nov2026_v1";
+
+let state = {
+  tab: "today",
+  selectedDay: 13, // Nov 13, 2026
+  grid: JSON.parse(JSON.stringify(INITIAL_GRID)),
+  notes: {
+    win: "Gratitude Journal & Morning Hydration are above 92% consistency.",
+    friction: "Digital Sunset dips on evenings when work runs past 8 PM.",
+    bounce: "Using the 2-Minute Starter rule kept streaks alive on busy Tuesdays.",
+    next: "Set an automatic 9:15 PM living-room lamp timer for Digital Sunset."
+  }
+};
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed.grid && parsed.grid.length === 10) state.grid = parsed.grid;
+      if (parsed.notes) state.notes = parsed.notes;
+    }
+  } catch (e) {}
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ grid: state.grid, notes: state.notes }));
+  } catch (e) {}
+}
+
+function getDow(dayNum) {
+  // Nov 1, 2026 is Sunday (index 0)
+  return DOW_NAMES[(dayNum - 1) % 7];
+}
+
+function computeAnalytics() {
+  let totalDone = 0, totalMiss = 0, totalGoal = 0;
+  const habitStats = HABITS.map((h, hIdx) => {
+    const row = state.grid[hIdx];
+    let done = 0, miss = 0, curStreak = 0, bestStreak = 0, tempStreak = 0;
+    for (let d = 0; d < 30; d++) {
+      const v = row[d];
+      if (v === 1) { done++; tempStreak++; if (tempStreak > bestStreak) bestStreak = tempStreak; }
+      else if (v === 0) { miss++; tempStreak = 0; }
+    }
+    // Current streak up to latest logged day
+    for (let d = 29; d >= 0; d--) {
+      if (row[d] === null) continue;
+      if (row[d] === 1) curStreak++;
+      else break;
+    }
+    const logged = done + miss;
+    const consistency = logged > 0 ? (done / logged) * 100 : 0;
+    const goalPct = (done / h.goal) * 100;
+    totalDone += done;
+    totalMiss += miss;
+    totalGoal += h.goal;
+    return { ...h, hIdx, done, miss, logged, consistency, goalPct, curStreak, bestStreak };
+  });
+
+  // Strict tie-free ranking: Consistency DESC -> Done DESC -> CurStreak DESC -> BestStreak DESC -> ID ASC
+  const ranked = [...habitStats].sort((a, b) => {
+    if (Math.abs(b.consistency - a.consistency) > 1e-6) return b.consistency - a.consistency;
+    if (b.done !== a.done) return b.done - a.done;
+    if (b.curStreak !== a.curStreak) return b.curStreak - a.curStreak;
+    if (b.bestStreak !== a.bestStreak) return b.bestStreak - a.bestStreak;
+    return a.id - b.id;
+  }).map((item, idx) => ({ ...item, rank: idx + 1 }));
+
+  const daily = [];
+  let activeDays = 0, peakDayCount = 0;
+  for (let d = 0; d < 30; d++) {
+    let done = 0, miss = 0;
+    for (let h = 0; h < 10; h++) {
+      if (state.grid[h][d] === 1) done++;
+      else if (state.grid[h][d] === 0) miss++;
+    }
+    const logged = done + miss;
+    if (logged > 0) activeDays++;
+    if (done > peakDayCount) peakDayCount = done;
+    daily.push({
+      day: d + 1,
+      dow: getDow(d + 1),
+      done,
+      miss,
+      logged,
+      pct: logged > 0 ? (done / 10) * 100 : null
+    });
+  }
+
+  const totalLogged = totalDone + totalMiss;
+  const overallConsistency = totalLogged > 0 ? (totalDone / totalLogged) * 100 : 0;
+  const overallGoalVolume = totalGoal > 0 ? (totalDone / totalGoal) * 100 : 0;
+
+  return { habitStats, ranked, daily, totalDone, totalMiss, totalLogged, totalGoal, overallConsistency, overallGoalVolume, activeDays, peakDayCount };
+}
+
+function toggleCell(hIdx, dIdx) {
+  const cur = state.grid[hIdx][dIdx];
+  // Cycle: null -> 1 (Done) -> 0 (Miss) -> null (Unlogged)
+  state.grid[hIdx][dIdx] = cur === null ? 1 : (cur === 1 ? 0 : null);
+  saveState();
+  render();
+}
+
+function markAllDay(dayNum, val) {
+  const dIdx = dayNum - 1;
+  for (let h = 0; h < 10; h++) state.grid[h][dIdx] = val;
+  saveState();
+  render();
+}
+
+function switchTab(tabName) {
+  state.tab = tabName;
+  document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+  const btn = document.getElementById("nav-" + tabName);
+  if (btn) btn.classList.add("active");
+  render();
+}
+
+function exportCSV() {
+  const stats = computeAnalytics();
+  let csv = "Rank,Habit,Category,Goal,Done,Missed,True_Consistency_Pct,Goal_Volume_Pct, Days_1_to_30\n";
+  stats.ranked.forEach(h => {
+    const rowVals = state.grid[h.hIdx].map(v => v === 1 ? "Done" : (v === 0 ? "Miss" : "Unlogged")).join(",");
+    csv += `${h.rank},"${h.name}","${h.cat}",${h.goal},${h.done},${h.miss},${h.consistency.toFixed(1)}%,${h.goalPct.toFixed(1)}%,${rowVals}\n`;
+  });
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "HabitPulse_Nov2026_Export.csv";
+  a.click();
+}
+
+function resetSampleData() {
+  state.grid = JSON.parse(JSON.stringify(INITIAL_GRID));
+  saveState();
+  render();
+}
+
+function render() {
+  const data = computeAnalytics();
+  document.getElementById("header-score").textContent = `${data.overallConsistency.toFixed(1)}% Consistency`;
+  const root = document.getElementById("app-content");
+
+  if (state.tab === "today") {
+    const dObj = data.daily[state.selectedDay - 1];
+    let stripHtml = `<div class="date-strip">`;
+    data.daily.forEach(d => {
+      const active = d.day === state.selectedDay ? "active" : "";
+      const dotColor = d.logged === 0 ? "#475569" : (d.done >= 8 ? "#4ADE80" : (d.done >= 5 ? "#FBBF24" : "#F87171"));
+      stripHtml += `
+        <div class="day-pill ${active}" onclick="state.selectedDay=${d.day};render();">
+          <div class="dow">${d.dow}</div>
+          <div class="dnum">${d.day}</div>
+          <div class="dot" style="background:${dotColor}"></div>
+        </div>`;
+    });
+    stripHtml += `</div>`;
+
+    let listHtml = "";
+    HABITS.forEach((h, hIdx) => {
+      const val = state.grid[hIdx][state.selectedDay - 1];
+      const st = data.habitStats[hIdx];
+      const cls = val === 1 ? "done" : (val === 0 ? "miss" : "");
+      const icon = val === 1 ? "✓" : (val === 0 ? "✗" : "·");
+      listHtml += `
+        <div class="habit-item ${cls}" onclick="toggleCell(${hIdx}, ${state.selectedDay - 1})">
+          <div class="habit-info">
+            <div class="habit-name">${h.id}. ${h.name}</div>
+            <div class="habit-meta">
+              <span>${h.cat}</span>
+              <span>• 🔥 ${st.curStreak}d streak</span>
+              <span>• ${st.consistency.toFixed(0)}% consistency</span>
+            </div>
+          </div>
+          <div class="status-btn">${icon}</div>
+        </div>`;
+    });
+
+    root.innerHTML = `
+      <div class="card">
+        <div class="card-title">Select Date — November 2026 (Tap any day)</div>
+        ${stripHtml}
+      </div>
+      <div class="card" style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:16px;font-weight:800;">${dObj.dow}, Nov ${dObj.day}, 2026</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px;">
+            ${dObj.logged === 0 ? "Unlogged Day — Tap habits below to check in" : `${dObj.done} of 10 Completed (${dObj.miss} Missed)`}
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button onclick="markAllDay(${dObj.day}, 1)" style="padding:7px 10px;border-radius:10px;border:1px solid #4ADE80;background:var(--green-bg);color:#4ADE80;font-size:11px;font-weight:700;cursor:pointer;">All ✓</button>
+          <button onclick="markAllDay(${dObj.day}, null)" style="padding:7px 10px;border-radius:10px;border:1px solid var(--border);background:#0F172A;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;">Clear</button>
+        </div>
+      </div>
+      ${listHtml}
+    `;
+  } else if (state.tab === "grid") {
+    let thDays = "";
+    data.daily.forEach(d => {
+      thDays += `<th><div style="font-size:9px;color:var(--muted)">${d.dow[0]}</div><div>${d.day}</div></th>`;
+    });
+    let rowsHtml = "";
+    HABITS.forEach((h, hIdx) => {
+      const st = data.habitStats[hIdx];
+      let cells = "";
+      for (let d = 0; d < 30; d++) {
+        const v = state.grid[hIdx][d];
+        const cls = v === 1 ? "cell-done" : (v === 0 ? "cell-miss" : "cell-null");
+        const sym = v === 1 ? "✓" : (v === 0 ? "✗" : "·");
+        cells += `<td class="${cls}" onclick="toggleCell(${hIdx},${d})" style="cursor:pointer;min-width:26px;">${sym}</td>`;
+      }
+      rowsHtml += `<tr>
+        <td class="sticky-col">${h.id}. ${h.name}</td>
+        ${cells}
+        <td style="font-weight:800;color:#5EEAD4;">${st.done}/${h.goal}</td>
+        <td style="font-weight:700;">${st.consistency.toFixed(0)}%</td>
+      </tr>`;
+    });
+
+    let sumCells = "";
+    data.daily.forEach(d => {
+      sumCells += `<td style="font-weight:800;color:${d.logged === 0 ? '#475569' : '#5EEAD4'}">${d.logged === 0 ? '—' : d.done}</td>`;
+    });
+
+    root.innerHTML = `
+      <div class="card">
+        <div class="card-title">30-Day Interactive Matrix (Tap any cell: ✓ → ✗ → ·)</div>
+        <div class="matrix-wrap">
+          <table class="matrix">
+            <thead>
+              <tr>
+                <th class="sticky-col">Habit</th>
+                ${thDays}
+                <th>Done</th>
+                <th>Rate</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+              <tr>
+                <td class="sticky-col" style="color:#5EEAD4;">Daily Total (of 10)</td>
+                ${sumCells}
+                <td style="font-weight:800;color:#4ADE80;">${data.totalDone}</td>
+                <td style="font-weight:800;color:#4ADE80;">${data.overallConsistency.toFixed(1)}%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  } else if (state.tab === "graphs") {
+    // Build SVG Line Chart (only plots logged days so unlogged days 14..30 don't drop to 0%)
+    const w = 520, h = 160, padL = 32, padR = 14, padT = 16, padB = 26;
+    const plotW = w - padL - padR, plotH = h - padT - padB;
+    const xPos = day => padL + ((day - 1) / 29) * plotW;
+    const yPos = pct => padT + (1 - pct / 100) * plotH;
+
+    const loggedDays = data.daily.filter(d => d.pct !== null);
+    const pts = loggedDays.map(d => `${xPos(d.day).toFixed(1)},${yPos(d.pct).toFixed(1)}`).join(" ");
+    let circles = "";
+    loggedDays.forEach(d => {
+      circles += `<circle cx="${xPos(d.day).toFixed(1)}" cy="${yPos(d.pct).toFixed(1)}" r="4" fill="#14B8A6" stroke="#0F172A" stroke-width="1.5" />`;
+    });
+
+    // Bar chart SVG
+    let barsSvg = "";
+    data.daily.forEach(d => {
+      const bx = padL + ((d.day - 1) / 30) * plotW + 2;
+      const bw = (plotW / 30) - 3;
+      const bh = d.logged > 0 ? (d.done / 10) * plotH : 3;
+      const by = padT + plotH - bh;
+      const fill = d.logged === 0 ? "#334155" : (d.done >= 8 ? "#14B8A6" : "#F59E0B");
+      barsSvg += `<rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="2" fill="${fill}" />`;
+    });
+
+    let rankHtml = "";
+    data.ranked.forEach(item => {
+      rankHtml += `
+        <div class="rank-row">
+          <div class="rank-num">#${item.rank}</div>
+          <div style="flex:1;">
+            <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;">
+              <span>${item.name}</span>
+              <span style="color:#5EEAD4;">${item.consistency.toFixed(1)}% (${item.done}/${item.logged}d)</span>
+            </div>
+            <div class="bar-bg"><div class="bar-fill" style="width:${item.consistency}%"></div></div>
+          </div>
+        </div>`;
+    });
+
+    root.innerHTML = `
+      <div class="kpi-grid">
+        <div class="kpi-box">
+          <div class="kpi-lbl">True Consistency Rate</div>
+          <div class="kpi-val">${data.overallConsistency.toFixed(1)}%</div>
+          <div class="kpi-sub">${data.totalDone} / ${data.totalLogged} logged checks</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-lbl">Monthly Goal Volume</div>
+          <div class="kpi-val">${data.overallGoalVolume.toFixed(1)}%</div>
+          <div class="kpi-sub">${data.totalDone} / ${data.totalGoal} monthly target</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-lbl">Peak Daily Score</div>
+          <div class="kpi-val">${data.peakDayCount} / 10</div>
+          <div class="kpi-sub">${data.activeDays} of 30 days logged</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-lbl">#1 Top Habit</div>
+          <div class="kpi-val" style="font-size:15px;">${data.ranked[0].name}</div>
+          <div class="kpi-sub">${data.ranked[0].consistency.toFixed(0)}% • 🔥 ${data.ranked[0].curStreak}d streak</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Daily Completion Trend (% — Logged Days Only, No False 0% Drop)</div>
+        <svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;">
+          <line x1="${padL}" y1="${yPos(100)}" x2="${w-padR}" y2="${yPos(100)}" stroke="#334155" stroke-dasharray="3,3" />
+          <line x1="${padL}" y1="${yPos(50)}" x2="${w-padR}" y2="${yPos(50)}" stroke="#334155" stroke-dasharray="3,3" />
+          <line x1="${padL}" y1="${yPos(0)}" x2="${w-padR}" y2="${yPos(0)}" stroke="#334155" />
+          <text x="4" y="${yPos(100)+4}" fill="#94A3B8" font-size="9">100%</text>
+          <text x="8" y="${yPos(50)+4}" fill="#94A3B8" font-size="9">50%</text>
+          <text x="12" y="${yPos(0)+4}" fill="#94A3B8" font-size="9">0%</text>
+          ${ pts ? `<polyline fill="none" stroke="#14B8A6" stroke-width="2.5" points="${pts}" />` : "" }
+          ${circles}
+          <text x="${xPos(1)}" y="${h-6}" fill="#94A3B8" font-size="9">Nov 1</text>
+          <text x="${xPos(13)-12}" y="${h-6}" fill="#5EEAD4" font-size="9">Nov 13</text>
+          <text x="${xPos(30)-28}" y="${h-6}" fill="#64748B" font-size="9">Nov 30</text>
+        </svg>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Daily Habits Completed (1–10 Scale across Nov 1–30)</div>
+        <svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;">
+          <line x1="${padL}" y1="${padT}" x2="${w-padR}" y2="${padT}" stroke="#334155" stroke-dasharray="3,3" />
+          <line x1="${padL}" y1="${padT+plotH}" x2="${w-padR}" y2="${padT+plotH}" stroke="#334155" />
+          <text x="8" y="${padT+6}" fill="#94A3B8" font-size="9">10</text>
+          <text x="12" y="${padT+plotH}" fill="#94A3B8" font-size="9">0</text>
+          ${barsSvg}
+        </svg>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Tie-Free Habit Leaderboard (#1 to #10)</div>
+        ${rankHtml}
+      </div>
+    `;
+  } else if (state.tab === "blueprint") {
+    let bpHtml = "";
+    HABITS.forEach(h => {
+      bpHtml += `
+        <div class="card">
+          <div style="font-size:14px;font-weight:800;color:#5EEAD4;margin-bottom:6px;">${h.id}. ${h.name}</div>
+          <div style="font-size:12px;margin-bottom:4px;"><strong>⚡ Anchor Cue:</strong> ${h.cue}</div>
+          <div style="font-size:12px;margin-bottom:4px;"><strong>⏱️ 2-Minute Starter:</strong> ${h.min2}</div>
+          <div style="font-size:12px;margin-bottom:4px;"><strong>🏡 Environment:</strong> ${h.env}</div>
+          <div style="font-size:12px;"><strong>🎁 Reward:</strong> ${h.reward}</div>
+        </div>`;
+    });
+
+    root.innerHTML = `
+      <div class="card">
+        <div class="card-title">Monthly Reflection Journal (Auto-Saved on Device)</div>
+        <label style="font-size:12px;font-weight:700;display:block;margin-top:6px;">🏆 Biggest Win This Month</label>
+        <textarea class="journal" oninput="state.notes.win=this.value;saveState();">${state.notes.win}</textarea>
+        <label style="font-size:12px;font-weight:700;display:block;margin-top:8px;">🚧 Primary Friction Point</label>
+        <textarea class="journal" oninput="state.notes.friction=this.value;saveState();">${state.notes.friction}</textarea>
+        <label style="font-size:12px;font-weight:700;display:block;margin-top:8px;">🔄 Adjustment for Next Month</label>
+        <textarea class="journal" oninput="state.notes.next=this.value;saveState();">${state.notes.next}</textarea>
+      </div>
+      ${bpHtml}
+    `;
+  } else if (state.tab === "backup") {
+    root.innerHTML = `
+      <div class="card">
+        <div class="card-title">📲 Install on Your Phone Home Screen</div>
+        <p style="font-size:13px;line-height:1.5;color:var(--text);margin-bottom:8px;">
+          <strong>On Android (Chrome):</strong><br/>
+          1. Open this downloaded <code>HabitPulse_Mobile_App.html</code> file in <strong>Google Chrome</strong>.<br/>
+          2. Tap the <strong>⋮ (three-dot menu)</strong> in the top-right corner.<br/>
+          3. Tap <strong>"Add to Home screen"</strong>. It installs a native-style icon on your phone and runs 100% offline!
+        </p>
+        <p style="font-size:13px;line-height:1.5;color:var(--text);">
+          <strong>On iPhone (Safari):</strong><br/>
+          Open the file in Safari → tap the <strong>Share</strong> button → tap <strong>"Add to Home Screen"</strong>.
+        </p>
+      </div>
+      <div class="card">
+        <div class="card-title">📊 Export & Data Management</div>
+        <button class="btn-action" onclick="exportCSV()">⬇️ Export Current Month to CSV</button>
+        <button class="btn-action" style="background:#334155;margin-top:10px;" onclick="resetSampleData()">🔄 Reset to Default Sample Data (Nov 1–13)</button>
+      </div>
+    `;
+  }
+}
+
+loadState();
+render();
+</script>
+</body>
+</html>
